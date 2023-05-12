@@ -63,8 +63,7 @@ def build(skipcargo):
 def calculate_sha256(file):
     with open(file, "rb") as f:
         b = f.read() # read entire file as bytes
-        readable_hash = hashlib.sha256(b).hexdigest()
-        return readable_hash
+        return hashlib.sha256(b).hexdigest()
 
 def build_windows(package_info):
     print("Starting packaging process for Windows...")
@@ -107,7 +106,7 @@ def build_windows(package_info):
 
     print("Determining best redist...")
 
-    if len(msvc_dirs) == 0:
+    if not msvc_dirs:
         raise Exception("Cannot find redistributable dlls")
 
     msvc_dir = None
@@ -129,7 +128,7 @@ def build_windows(package_info):
     print("Found DLLs:")
     include_list = []
     for dll in dll_files:
-        print("Including: "+dll)
+        print(f"Including: {dll}")
         include_list.append("Source: \""+dll+"\"; DestDir: \"{app}\"; Flags: ignoreversion")
 
     print("Including modulo")
@@ -137,7 +136,7 @@ def build_windows(package_info):
 
     include = "\r\n".join(include_list)
 
-    INSTALLER_NAME = f"espanso-win-installer"
+    INSTALLER_NAME = "espanso-win-installer"
 
     # Inno setup
     shutil.copy("packager/win/modpath.iss", os.path.join(TARGET_DIR, "modpath.iss"))
@@ -166,7 +165,7 @@ def build_windows(package_info):
 
     print("Calculating the SHA256")
     sha256_hash = hashlib.sha256()
-    with open(os.path.abspath(os.path.join(TARGET_DIR, INSTALLER_NAME+".exe")),"rb") as f:
+    with open(os.path.abspath(os.path.join(TARGET_DIR, f"{INSTALLER_NAME}.exe")), "rb") as f:
         # Read and update hash string value in blocks of 4K
         for byte_block in iter(lambda: f.read(4096),b""):
             sha256_hash.update(byte_block)
@@ -190,7 +189,7 @@ def build_mac(package_info):
     os.makedirs(TARGET_DIR, exist_ok=True)
 
     print("Compressing release to archive...")
-    target_name = f"espanso-mac.tar.gz"
+    target_name = "espanso-mac.tar.gz"
     archive_target = os.path.abspath(os.path.join(TARGET_DIR, target_name))
     subprocess.run(["tar",
                     "-C", os.path.abspath("target/release"),
